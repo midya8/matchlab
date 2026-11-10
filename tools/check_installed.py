@@ -6,7 +6,11 @@ sys.path.insert(0,str(ROOT))
 from matchlab.controls import controls
 from matchlab import analyze
 
-def call(args,**kw):return subprocess.run(args,check=True,capture_output=True,text=True,**kw).stdout
+def call(args,**kw):
+ p=subprocess.run(args,capture_output=True,text=True,**kw)
+ if p.returncode:
+  print(p.stdout,file=sys.stderr);print(p.stderr,file=sys.stderr);p.check_returncode()
+ return p.stdout
 with tempfile.TemporaryDirectory()as d:
  t=Path(d);w=t/'wheels';w.mkdir();call([sys.executable,'-m','pip','wheel','--no-deps','--no-build-isolation','-w',str(w),str(ROOT)]);wheel=next(w.glob('*.whl'));env=t/'env';venv.create(env,with_pip=True);py=str(env/'bin/python');exe=str(env/'bin/matchlab');call([py,'-m','pip','install','--no-deps',str(wheel)]);clean=t/'outside';clean.mkdir();en=os.environ.copy();en.pop('PYTHONPATH',None)
  code='''import importlib,importlib.metadata,pathlib,sys
