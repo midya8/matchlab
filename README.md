@@ -1,16 +1,29 @@
 # MatchLab
 
-**Stable is a constraint. Not a cost minimum.**
-
 An exact finite inspector for classical strict complete two-sided stable matching. It shows both proposer-optimal outcomes, the whole stable family, every blocking-pair test, the stable lattice and an explicitly separate assignment-cost objective.
 
 The original default profile has three stable assignments. Ignoring stability costs **3**. The cheapest stable assignment costs **13**, a premium of **10**. The unique cheapest stable assignment is neither proposer-optimal extreme. Another original profile has four stable assignments in a diamond, including incomparable outcomes.
+
+## Choose a view
+
+| Question | Evidence |
+| --- | --- |
+| What does either side's proposal process produce? | Both deferred-acceptance traces and proposer-optimal outcomes |
+| Which assignments are stable? | Every bijection and every blocking-pair test |
+| How are stable outcomes ordered? | All stable partners, lattice operations and covers |
+| What does a separate supplied cost objective select? | Unconstrained/stable minima, cost ties and blocker-cap minima |
+
+Stability and cost minimization are separate constraints. Costs do not follow
+from preference ranks, and a cheapest assignment need not be stable. None of
+these supplied-model results recommends an allocation for real people.
 
 ## Run locally
 
 Python 3.10+, no runtime dependencies, no paid API or backend:
 
 ```sh
+python -m venv .venv
+. .venv/bin/activate
 python -m pip install .
 python -m matchlab demo > report.json
 python -m matchlab verify report.json
@@ -31,7 +44,7 @@ Open localhost:8000 for the browser inspector. Every input and computation stays
 
 IDs and ranks are zero-based. Signed supplied costs are independent of preference ranks. Rank sums and worst rank are descriptive indices, not cardinal utilities, a welfare objective or an implied tie-breaker.
 
-## Scope and honesty
+## Scope and limits
 
 Balanced sides of size **1..5**, strict complete rankings, every pair acceptable, one partner per participant. No ties, unacceptable partners, unmatched people, capacities or learned preferences. The finite enumerator is factorial, not a scalable allocation engine. The deferred-acceptance implementation uses the lowest free proposer ID, not simultaneous rounds.
 
@@ -43,15 +56,24 @@ These are classical algorithms and theory, not new matching results. Developed p
 python -m unittest discover -s tests -v
 node --test tests/test_engine.cjs
 node --test tests/test_browser.cjs
+python tools/check_assets.py
 python tools/check_installed.py
-python -m pip install scipy==1.15.3
-python tools/check_milp.py
 ```
 
 Node 22+ and an installed `google-chrome` (or `CHROME_BIN`) are needed for actual browser tests. Browser tests use Chrome DevTools directly, not a mock DOM. The optional SciPy check builds binary assignment and stability constraints from the original input only, solves both objectives with HiGHS, and independently checks the returned assignment. Runtime code requires none of these test dependencies.
 
-On 76 profiles (16 developed controls plus 12 seeded profiles at each size 1..5): 2,219 assignments, 49,295 pair witnesses, 113 stable assignments, 217 ordered lattice operations and 715 proposal states. The 20-test native suite rejects 1,372 primitive forgeries; two Node tests compare full Python/JavaScript reports and strict input validation. The optional input-built reference makes 152 integer solves, 1,774 constraint rows and zero absolute cost error with a stated 1e-8 tolerance. Installed-wheel checks cover six module origins, 16 controls, two entrypoints and 32 forged-report CLI rejections.
+The native suite checks the complete finite evidence, relabeling and side-reversal
+properties, and rejection of forged reports. The browser suite compares complete
+Python/JavaScript reports, exercises the matching, proposal, lattice and cost-cap
+views at three widths, and verifies downloaded reports with the native CLI. The
+wheel check runs both entrypoints outside the source checkout. Counts in the test
+output describe this finite suite, not a performance benchmark or universal proof.
 
-Actual Chrome checks 48 responsive views at 1440/768/390px, 1,149 selected assignments, 23,793 pair rows, 453 proposal states, 243 lattice-operation selections, 450 blocker-cap selections, invalid-input clearing and 16 downloads independently verified by the native CLI. These counts describe this finite test suite, not universal proof or a performance benchmark.
+Run the optional input-built integer reference in the active virtual environment:
+
+```sh
+python -m pip install scipy==1.15.3
+python tools/check_milp.py
+```
 
 See [METHOD.md](METHOD.md) for definitions, independence limits and reference constraints, and [SOURCES.md](SOURCES.md) for classical theory and existing software. MIT licensed original implementation.
